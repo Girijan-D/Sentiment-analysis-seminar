@@ -1,0 +1,3907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Sentiment Analysis & Time Series Forecasting using RNNs</title>
+
+<style>
+
+*{
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    font-family:Arial, Helvetica, sans-serif;
+    background:#07111f;
+    color:#e8eef7;
+    line-height:1.7;
+}
+
+/* ================= NAVIGATION ================= */
+
+nav{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    background:rgba(7,17,31,.95);
+    backdrop-filter:blur(12px);
+    padding:14px 25px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    z-index:1000;
+    border-bottom:1px solid #24344d;
+}
+
+.logo{
+    font-weight:bold;
+    font-size:20px;
+    color:#ffffff;
+}
+
+nav a{
+    color:#aebed5;
+    text-decoration:none;
+    margin-left:18px;
+    font-size:14px;
+}
+
+nav a:hover{
+    color:#63d6ff;
+}
+
+/* ================= PROGRESS BAR ================= */
+
+.progress{
+    position:fixed;
+    top:0;
+    left:0;
+    height:3px;
+    background:#63d6ff;
+    z-index:2000;
+    width:0%;
+}
+
+/* ================= HERO ================= */
+
+.hero{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding:100px 20px 50px;
+
+    background:
+    radial-gradient(
+        circle at 20% 20%,
+        #123a55 0,
+        transparent 35%
+    ),
+
+    radial-gradient(
+        circle at 80% 70%,
+        #241f55 0,
+        transparent 35%
+    ),
+
+    #07111f;
+}
+
+.hero-content{
+    max-width:1000px;
+}
+
+.badge{
+    display:inline-block;
+    padding:8px 16px;
+    border:1px solid #35627e;
+    border-radius:30px;
+    color:#63d6ff;
+    margin-bottom:20px;
+}
+
+h1{
+    font-size:clamp(40px,7vw,78px);
+    line-height:1.05;
+    margin-bottom:25px;
+}
+
+.gradient{
+    background:linear-gradient(
+        90deg,
+        #63d6ff,
+        #b67cff
+    );
+
+    -webkit-background-clip:text;
+    color:transparent;
+}
+
+.hero p{
+    font-size:20px;
+    color:#aebed5;
+    max-width:800px;
+    margin:auto;
+}
+
+/* ================= GENERAL ================= */
+
+section{
+    max-width:1150px;
+    margin:auto;
+    padding:100px 25px;
+}
+
+.section-number{
+    color:#63d6ff;
+    font-weight:bold;
+    letter-spacing:2px;
+}
+
+h2{
+    font-size:42px;
+    margin:10px 0 20px;
+}
+
+h3{
+    font-size:25px;
+    margin-bottom:12px;
+}
+
+p{
+    color:#b9c6d8;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:
+    repeat(auto-fit,minmax(250px,1fr));
+
+    gap:20px;
+    margin-top:30px;
+}
+
+.card{
+    background:#0d1a2b;
+    border:1px solid #24344d;
+    border-radius:16px;
+    padding:25px;
+    transition:.3s;
+}
+
+.card:hover{
+    transform:translateY(-5px);
+    border-color:#4ba9cf;
+}
+
+.card h3{
+    color:#63d6ff;
+}
+
+.flow{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    align-items:center;
+    gap:12px;
+    margin:35px 0;
+}
+
+.flow-item{
+    background:#13243a;
+    border:1px solid #31506c;
+    padding:15px 20px;
+    border-radius:12px;
+    text-align:center;
+}
+
+.arrow{
+    color:#63d6ff;
+    font-size:25px;
+}
+
+.highlight{
+    background:
+    linear-gradient(
+        135deg,
+        #102b40,
+        #171d3b
+    );
+
+    border-left:4px solid #63d6ff;
+
+    padding:25px;
+
+    border-radius:10px;
+
+    margin:25px 0;
+}
+
+ul{
+    padding-left:25px;
+    color:#bdc9d8;
+}
+
+li{
+    margin:8px 0;
+}
+
+/* ================= TABLE ================= */
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin:25px 0;
+}
+
+th,
+td{
+    padding:14px;
+    border:1px solid #2b405a;
+    text-align:left;
+}
+
+th{
+    background:#13243a;
+    color:#63d6ff;
+}
+
+td{
+    color:#c0ccdc;
+}
+
+/* ================= DEMO ================= */
+
+.demo{
+    background:#091727;
+    border:1px solid #2b405a;
+    border-radius:18px;
+    padding:30px;
+    margin-top:30px;
+}
+
+textarea,
+input,
+select{
+
+    width:100%;
+
+    padding:14px;
+
+    margin:10px 0;
+
+    border-radius:8px;
+
+    border:1px solid #334d68;
+
+    background:#07111f;
+
+    color:white;
+}
+
+button{
+
+    background:#167da5;
+
+    color:white;
+
+    border:none;
+
+    padding:12px 20px;
+
+    border-radius:8px;
+
+    cursor:pointer;
+
+    font-weight:bold;
+}
+
+button:hover{
+    background:#209bc9;
+}
+
+.result{
+
+    margin-top:15px;
+
+    padding:18px;
+
+    border-radius:10px;
+
+    background:#10263b;
+
+    display:none;
+}
+
+.positive{
+    color:#55e39a;
+}
+
+.negative{
+    color:#ff6f91;
+}
+
+.neutral{
+    color:#ffd166;
+}
+
+/* ================= TIME SERIES ================= */
+
+.timeline{
+
+    display:flex;
+
+    gap:10px;
+
+    overflow-x:auto;
+
+    padding:20px 0;
+}
+
+.time-card{
+
+    min-width:130px;
+
+    padding:18px;
+
+    background:#13243a;
+
+    border-radius:10px;
+
+    text-align:center;
+}
+
+/* ================= RNN ================= */
+
+.rnn-box{
+
+    display:grid;
+
+    grid-template-columns:
+    1fr 1fr 1fr;
+
+    gap:15px;
+
+    margin:30px 0;
+
+    align-items:center;
+}
+
+.node{
+
+    background:#132b40;
+
+    border:2px solid #3988ad;
+
+    padding:25px;
+
+    text-align:center;
+
+    border-radius:50%;
+}
+
+.rnn-arrow{
+
+    text-align:center;
+
+    color:#63d6ff;
+
+    font-size:30px;
+}
+
+/* ================= QUIZ ================= */
+
+.quiz{
+
+    margin-top:20px;
+
+    padding:20px;
+
+    background:#101e30;
+
+    border-radius:12px;
+}
+
+.option{
+
+    display:block;
+
+    padding:12px;
+
+    margin:8px 0;
+
+    border:1px solid #304861;
+
+    border-radius:8px;
+
+    cursor:pointer;
+}
+
+.option:hover{
+    background:#172d43;
+}
+
+.correct{
+
+    border-color:#43d98a !important;
+
+    color:#43d98a;
+}
+
+.wrong{
+
+    border-color:#ff647f !important;
+
+    color:#ff647f;
+}
+
+/* ================= FOOTER ================= */
+
+footer{
+
+    text-align:center;
+
+    padding:60px 20px;
+
+    border-top:1px solid #24344d;
+
+    color:#8295ad;
+
+    font-size:17px;
+}
+
+footer strong{
+    color:#63d6ff;
+}
+
+/* ================= MOBILE ================= */
+
+@media(max-width:700px){
+
+    nav .links{
+        display:none;
+    }
+
+    h2{
+        font-size:32px;
+    }
+
+    .rnn-box{
+        grid-template-columns:1fr;
+    }
+
+    .hero p{
+        font-size:17px;
+    }
+
+}
+
+</style>
+</head>
+
+
+<body>
+
+
+<!-- ================= PROGRESS ================= -->
+
+<div class="progress" id="progress"></div>
+
+
+<!-- ================= NAVIGATION ================= -->
+
+<nav>
+
+    <div class="logo">
+        Sentiment & RNN
+    </div>
+
+    <div class="links">
+
+        <a href="#intro">Introduction</a>
+
+        <a href="#sentiment">
+            Sentiment Analysis
+        </a>
+
+        <a href="#timeseries">
+            Time Series
+        </a>
+
+        <a href="#rnn">
+            RNNs
+        </a>
+
+        <a href="#forecast">
+            Forecasting
+        </a>
+
+        <a href="#quiz">
+            Quiz
+        </a>
+
+    </div>
+
+</nav>
+
+
+<!-- ===================================================== -->
+<!-- HERO -->
+<!-- ===================================================== -->
+
+<div class="hero">
+
+<div class="hero-content">
+
+<div class="badge">
+    NLP • TIME SERIES • DEEP LEARNING
+</div>
+
+<h1>
+
+Sentiment Analysis &
+
+<br>
+
+<span class="gradient">
+Time Series Forecasting using RNNs
+</span>
+
+</h1>
+
+<p>
+
+From understanding what people feel about a product
+to predicting what happens next in a changing world.
+
+</p>
+
+
+<div class="highlight"
+     style="margin-top:35px;text-align:left">
+
+<strong>
+Seminar Roadmap
+</strong>
+
+
+<div class="flow">
+
+<div class="flow-item">
+Sentiment Analysis
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-item">
+Text Processing
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-item">
+Time Series
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-item">
+RNNs
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-item">
+Forecasting
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+
+<!-- ===================================================== -->
+<!-- INTRODUCTION -->
+<!-- ===================================================== -->
+
+<section id="intro">
+
+<div class="section-number">
+01 — FOUNDATION
+</div>
+
+<h2>
+Why do we need these techniques?
+</h2>
+
+<p>
+
+Modern systems generate enormous amounts of sequential
+information.
+
+Tweets, customer reviews, stock prices, weather measurements,
+medical signals and website traffic all contain patterns that
+change with time or context.
+
+</p>
+
+
+<div class="grid">
+
+
+<div class="card">
+
+<h3>
+Human Language
+</h3>
+
+<p>
+
+Text contains opinions, emotions, intentions and attitudes.
+
+Sentiment analysis attempts to extract this information
+automatically.
+
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Temporal Data
+</h3>
+
+<p>
+
+Time series data records observations in chronological order.
+
+The previous values can provide information about future values.
+
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Sequential Learning
+</h3>
+
+<p>
+
+RNNs are designed to process sequences while maintaining
+information about previous elements.
+
+</p>
+
+</div>
+
+
+</div>
+
+</section>
+
+
+<!-- ===================================================== -->
+<!-- SENTIMENT ANALYSIS -->
+<!-- ===================================================== -->
+
+<section id="sentiment">
+
+<div class="section-number">
+02 — NATURAL LANGUAGE PROCESSING
+</div>
+
+<h2>
+Sentiment Analysis
+</h2>
+
+<p>
+
+Sentiment analysis is the computational process of identifying
+subjective information in text and determining the attitude,
+emotion or polarity expressed by the writer.
+
+</p>
+
+
+<div class="highlight">
+
+<strong>
+Core idea:
+</strong>
+
+Instead of simply asking:
+
+<em>
+"What words are present?"
+</em>
+
+we ask:
+
+<em>
+"What does the text express?"
+</em>
+
+</div>
+
+
+<h3>
+What can a sentiment system detect?
+</h3>
+
+
+<div class="grid">
+
+
+<div class="card">
+
+<h3>
+Positive
+</h3>
+
+<p>
+"The camera quality is incredible."
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Negative
+</h3>
+
+<p>
+"The battery died after only two hours."
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Neutral
+</h3>
+
+<p>
+"The phone has a 6.7-inch display."
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Emotion
+</h3>
+
+<p>
+Joy, anger, fear, sadness, surprise, etc.
+</p>
+
+</div>
+
+
+</div>
+
+
+<!-- PIPELINE -->
+
+<h3 style="margin-top:50px">
+
+Sentiment Analysis Pipeline
+
+</h3>
+
+
+<div class="flow">
+
+
+<div class="flow-item">
+Raw Text
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-item">
+Cleaning
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-item">
+Tokenization
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-item">
+Feature Representation
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-item">
+Model
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-item">
+Sentiment
+</div>
+
+
+</div>
+
+
+<!-- PREPROCESSING -->
+
+<h3>
+Step 1 — Text Preprocessing
+</h3>
+
+
+<div class="grid">
+
+
+<div class="card">
+
+<h3>
+Tokenization
+</h3>
+
+<p>
+
+Breaking text into smaller units such as words or subwords.
+
+</p>
+
+<br>
+
+<p>
+
+"I love this phone"
+
+→
+
+["I","love","this","phone"]
+
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Lowercasing
+</h3>
+
+<p>
+
+Converting text into a consistent representation.
+
+</p>
+
+<br>
+
+<p>
+
+"AMAZING"
+
+→
+
+"amazing"
+
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Stop-word Handling
+</h3>
+
+<p>
+
+Words such as "the", "is" and "a" may sometimes be removed,
+depending on the model and task.
+
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Stemming / Lemmatization
+</h3>
+
+<p>
+
+Reducing related words to a common representation.
+
+</p>
+
+</div>
+
+
+</div>
+
+
+<!-- FEATURE EXTRACTION -->
+
+<h3 style="margin-top:45px">
+
+Feature Extraction Techniques
+
+</h3>
+
+
+<table>
+
+<tr>
+
+<th>
+Technique
+</th>
+
+<th>
+Idea
+</th>
+
+<th>
+Advantage
+</th>
+
+</tr>
+
+
+<tr>
+
+<td>
+Bag of Words
+</td>
+
+<td>
+Represents text using word occurrence counts.
+</td>
+
+<td>
+Simple and interpretable.
+</td>
+
+</tr>
+
+
+<tr>
+
+<td>
+TF-IDF
+</td>
+
+<td>
+Weights words according to their importance.
+</td>
+
+<td>
+Good traditional baseline.
+</td>
+
+</tr>
+
+
+<tr>
+
+<td>
+Word Embeddings
+</td>
+
+<td>
+Represent words as dense numerical vectors.
+</td>
+
+<td>
+Captures semantic relationships.
+</td>
+
+</tr>
+
+
+<tr>
+
+<td>
+Contextual Embeddings
+</td>
+
+<td>
+Representation changes according to context.
+</td>
+
+<td>
+Better understanding of language.
+</td>
+
+</tr>
+
+</table>
+
+
+<!-- METHODS -->
+
+<h3>
+Major Sentiment Analysis Approaches
+</h3>
+
+
+<div class="grid">
+
+
+<div class="card">
+
+<h3>
+1. Lexicon-Based
+</h3>
+
+<p>
+
+Uses a dictionary containing words associated with sentiment.
+
+</p>
+
+<br>
+
+<p>
+
+"excellent" → positive
+
+<br>
+
+"terrible" → negative
+
+</p>
+
+<br>
+
+<p>
+<strong>
+Advantage:
+</strong>
+
+Easy to implement.
+
+</p>
+
+<p>
+<strong>
+Disadvantage:
+</strong>
+
+Struggles with context, sarcasm and negation.
+
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+2. Machine Learning
+</h3>
+
+<p>
+
+Algorithms such as Naive Bayes, Logistic Regression,
+SVM and decision trees learn sentiment patterns from labelled data.
+
+</p>
+
+<br>
+
+<p>
+
+<strong>
+Advantage:
+</strong>
+
+Better than simple word counting.
+
+</p>
+
+<p>
+
+<strong>
+Disadvantage:
+</strong>
+
+Requires labelled training data.
+
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+3. Deep Learning
+</h3>
+
+<p>
+
+Neural networks learn representations automatically
+from large datasets.
+
+</p>
+
+<br>
+
+<p>
+
+CNNs, RNNs, LSTMs and Transformers can be used.
+
+</p>
+
+<p>
+
+<strong>
+Advantage:
+</strong>
+
+Captures complex patterns.
+
+</p>
+
+<p>
+
+<strong>
+Disadvantage:
+</strong>
+
+Requires more data and computation.
+
+</p>
+
+</div>
+
+
+</div>
+
+
+<!-- INTERACTIVE SENTIMENT -->
+
+<div class="demo">
+
+<h3>
+🎯 Interactive Sentiment Analyzer
+</h3>
+
+<p>
+
+Type a sentence and see a simple rule-based demonstration.
+
+</p>
+
+
+<textarea id="sentText">
+
+I absolutely love this product, the camera is amazing!
+
+</textarea>
+
+
+<button onclick="analyzeSentiment()">
+
+Analyze Sentiment
+
+</button>
+
+
+<div id="sentResult"
+     class="result">
+</div>
+
+</div>
+
+
+<!-- REAL APPLICATION -->
+
+<h3 style="margin-top:50px">
+
+Interesting Real-World Application
+
+</h3>
+
+
+<div class="highlight">
+
+<strong>
+Imagine a major smartphone launch.
+</strong>
+
+<br><br>
+
+Within hours, millions of people post:
+
+<br><br>
+
+"Camera is insane 🔥"
+
+<br>
+
+"Battery is disappointing."
+
+<br>
+
+"Best phone I've ever used."
+
+<br>
+
+"The design is beautiful but overheating is horrible."
+
+<br><br>
+
+A company cannot manually read millions of posts.
+
+Sentiment analysis can process them and create a
+<strong>
+live perception map
+</strong>
+of the product.
+
+It can reveal that customers love the camera but hate the
+battery, allowing the company to prioritize engineering
+improvements.
+
+</div>
+
+
+<!-- ADVANTAGES -->
+
+<h3>
+Advantages
+</h3>
+
+<ul>
+
+<li>
+Processes huge volumes of text automatically.
+</li>
+
+<li>
+Useful for real-time monitoring.
+</li>
+
+<li>
+Can reveal customer preferences.
+</li>
+
+<li>
+Supports business and decision-making systems.
+</li>
+
+<li>
+Can detect changes in public opinion.
+</li>
+
+</ul>
+
+
+<!-- DISADVANTAGES -->
+
+<h3 style="margin-top:25px">
+
+Disadvantages
+
+</h3>
+
+<ul>
+
+<li>
+Sarcasm is difficult to interpret.
+</li>
+
+<li>
+Negation can change meaning.
+</li>
+
+<li>
+Language can be ambiguous.
+</li>
+
+<li>
+Different domains require different training data.
+</li>
+
+<li>
+Bias in training data can produce biased predictions.
+</li>
+
+</ul>
+
+</section>
+
+
+<!-- ===================================================== -->
+<!-- TIME SERIES -->
+<!-- ===================================================== -->
+
+<section id="timeseries">
+
+<div class="section-number">
+03 — TEMPORAL DATA
+</div>
+
+<h2>
+Time Series Forecasting
+</h2>
+
+<p>
+
+A time series is a sequence of observations collected over time.
+
+Time series forecasting uses historical observations to estimate
+future values.
+
+</p>
+
+
+<div class="timeline">
+
+
+<div class="time-card">
+Jan
+<br>
+<strong>
+120
+</strong>
+</div>
+
+
+<div class="time-card">
+Feb
+<br>
+<strong>
+135
+</strong>
+</div>
+
+
+<div class="time-card">
+Mar
+<br>
+<strong>
+142
+</strong>
+</div>
+
+
+<div class="time-card">
+Apr
+<br>
+<strong>
+151
+</strong>
+</div>
+
+
+<div class="time-card">
+May
+<br>
+<strong>
+163
+</strong>
+</div>
+
+
+<div class="time-card">
+?
+</div>
+
+
+</div>
+
+
+<h3>
+Important Components
+</h3>
+
+
+<div class="grid">
+
+
+<div class="card">
+
+<h3>
+Trend
+</h3>
+
+<p>
+
+Long-term upward or downward movement.
+
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Seasonality
+</h3>
+
+<p>
+
+A pattern that repeats at regular intervals.
+
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Noise
+</h3>
+
+<p>
+
+Random variation that cannot be perfectly predicted.
+
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Cycles
+</h3>
+
+<p>
+
+Longer-term fluctuations that may not have a fixed period.
+
+</p>
+
+</div>
+
+
+</div>
+
+
+<h3 style="margin-top:45px">
+
+Forecasting Workflow
+
+</h3>
+
+
+<div class="flow">
+
+
+<div class="flow-item">
+Historical Data
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-item">
+Cleaning
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-item">
+Time Ordering
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-item">
+Sequence Creation
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-item">
+Model Training
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-item">
+Forecast
+</div>
+
+
+</div>
+
+
+<!-- COMPARISON -->
+
+<h3>
+Traditional Forecasting vs RNN
+</h3>
+
+
+<table>
+
+<tr>
+
+<th>
+Traditional Methods
+</th>
+
+<th>
+RNN-Based Methods
+</th>
+
+</tr>
+
+
+<tr>
+
+<td>
+Often depend on statistical assumptions.
+</td>
+
+<td>
+Learn patterns directly from sequences.
+</td>
+
+</tr>
+
+
+<tr>
+
+<td>
+Good for many structured problems.
+</td>
+
+<td>
+Can model nonlinear relationships.
+</td>
+
+</tr>
+
+
+<tr>
+
+<td>
+Feature engineering may be important.
+</td>
+
+<td>
+Can learn useful representations automatically.
+</td>
+
+</tr>
+
+
+<tr>
+
+<td>
+Examples: ARIMA, exponential smoothing.
+</td>
+
+<td>
+Examples: RNN, LSTM, GRU.
+</td>
+
+</tr>
+
+</table>
+
+
+<!-- APPLICATIONS -->
+
+<h3>
+Interesting Real-Life Applications
+</h3>
+
+
+<div class="grid">
+
+
+<div class="card">
+
+<h3>
+⚡ Electricity Grid
+</h3>
+
+<p>
+
+Forecast electricity demand for the next few hours.
+
+This helps utilities prepare generation capacity before demand
+arrives.
+
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+🌧️ Flood Risk
+</h3>
+
+<p>
+
+Combine rainfall and river-level sequences to anticipate
+dangerous water levels.
+
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+🚦 Traffic Prediction
+</h3>
+
+<p>
+
+Historical traffic patterns can help estimate congestion
+before commuters reach a particular road.
+
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+🏥 Patient Monitoring
+</h3>
+
+<p>
+
+Heart rate and other physiological measurements arrive as
+sequences.
+
+Models can detect abnormal temporal patterns.
+
+</p>
+
+</div>
+
+
+</div>
+
+</section>
+
+
+<!-- ===================================================== -->
+<!-- RNN -->
+<!-- ===================================================== -->
+
+<section id="rnn">
+
+<div class="section-number">
+04 — DEEP LEARNING
+</div>
+
+<h2>
+Recurrent Neural Networks
+</h2>
+
+<p>
+
+A Recurrent Neural Network, or RNN, is a neural network designed
+to process sequential data by maintaining a hidden state that
+carries information from previous time steps.
+
+</p>
+
+
+<div class="highlight">
+
+<strong>
+The key idea:
+</strong>
+
+<br><br>
+
+An ordinary neural network asks:
+
+<br>
+
+<em>
+"What is the current input?"
+</em>
+
+<br><br>
+
+An RNN asks:
+
+<br>
+
+<em>
+"What is the current input + what have I learned from previous
+inputs?"
+</em>
+
+</div>
+
+
+<!-- WHY RNN -->
+
+<h3>
+Why do we need RNNs?
+</h3>
+
+<p>
+
+Consider the sentence:
+
+</p>
+
+
+<div class="card"
+     style="margin-top:20px;text-align:center">
+
+<strong>
+
+"The movie was not good because the acting was extremely..."
+
+</strong>
+
+<br><br>
+
+The earlier words influence what comes next.
+
+A sequential model needs some form of memory.
+
+</div>
+
+
+<!-- ARCHITECTURE -->
+
+<h3 style="margin-top:40px">
+
+Basic RNN Architecture
+
+</h3>
+
+
+<div class="rnn-box">
+
+
+<div class="node">
+
+xₜ
+
+<br>
+
+Current Input
+
+</div>
+
+
+<div class="rnn-arrow">
+→
+</div>
+
+
+<div class="node">
+
+RNN Cell
+
+<br>
+
+hₜ
+
+</div>
+
+
+<div class="rnn-arrow">
+↑
+</div>
+
+
+<div class="node">
+
+Previous State
+
+<br>
+
+hₜ₋₁
+
+</div>
+
+
+<div class="rnn-arrow">
+→
+</div>
+
+
+<div class="node">
+
+Output
+
+<br>
+
+yₜ
+
+</div>
+
+
+</div>
+
+
+<!-- HOW RNN WORKS -->
+
+<h3>
+How RNN Works
+</h3>
+
+
+<div class="grid">
+
+
+<div class="card">
+
+<h3>
+Step 1
+</h3>
+
+<p>
+
+Receive the current input xₜ.
+
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Step 2
+</h3>
+
+<p>
+
+Combine current input with previous hidden state.
+
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Step 3
+</h3>
+
+<p>
+
+Generate the new hidden state.
+
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Step 4
+</h3>
+
+<p>
+
+Use the hidden state to generate an output.
+
+</p>
+
+</div>
+
+
+</div>
+
+
+<!-- EQUATION -->
+
+<div class="highlight">
+
+<h3>
+Core RNN idea
+</h3>
+
+<p style="
+text-align:center;
+font-size:22px;
+">
+
+hₜ = f(Wₓxₜ + Wₕhₜ₋₁ + b)
+
+</p>
+
+<br>
+
+The new hidden state depends on:
+
+<strong>
+current input + previous hidden state.
+</strong>
+
+</div>
+
+
+<!-- UNROLL -->
+
+<h3>
+Unrolling an RNN
+</h3>
+
+
+<div class="flow">
+
+
+<div class="flow-item">
+
+x₁
+
+<br>
+
+h₁
+
+</div>
+
+
+<div class="arrow">
+→
+</div>
+
+
+<div class="flow-item">
+
+x₂
+
+<br>
+
+h₂
+
+</div>
+
+
+<div class="arrow">
+→
+</div>
+
+
+<div class="flow-item">
+
+x₃
+
+<br>
+
+h₃
+
+</div>
+
+
+<div class="arrow">
+→
+</div>
+
+
+<div class="flow-item">
+
+x₄
+
+<br>
+
+h₄
+
+</div>
+
+
+<div class="arrow">
+→
+</div>
+
+
+<div class="flow-item">
+
+Prediction
+
+</div>
+
+
+</div>
+
+
+<!-- TRAINING -->
+
+<h3>
+RNN Training
+</h3>
+
+<p>
+
+RNNs are commonly trained using
+<strong>
+Backpropagation Through Time (BPTT).
+</strong>
+
+The network is conceptually unrolled across time and the error
+is propagated backward through those time steps.
+
+</p>
+
+
+<!-- VANISHING -->
+
+<h3 style="margin-top:35px">
+
+The Vanishing Gradient Problem
+
+</h3>
+
+
+<div class="highlight">
+
+During BPTT, gradients may become extremely small as they are
+propagated through many time steps.
+
+When this happens, the network has difficulty learning
+long-term dependencies.
+
+<br><br>
+
+<strong>
+Solution:
+</strong>
+
+Architectures such as
+<strong>
+LSTM
+</strong>
+and
+<strong>
+GRU
+</strong>
+were developed to handle long-term dependencies more effectively.
+
+</div>
+
+
+<!-- VARIANTS -->
+
+<h3>
+RNN Variants
+</h3>
+
+
+<table>
+
+<tr>
+
+<th>
+Architecture
+</th>
+
+<th>
+Main Idea
+</th>
+
+</tr>
+
+
+<tr>
+
+<td>
+Simple RNN
+</td>
+
+<td>
+Basic recurrent hidden state.
+</td>
+
+</tr>
+
+
+<tr>
+
+<td>
+LSTM
+</td>
+
+<td>
+Uses gates and memory cell to retain useful information.
+</td>
+
+</tr>
+
+
+<tr>
+
+<td>
+GRU
+</td>
+
+<td>
+Simplified gated architecture with fewer components.
+</td>
+
+</tr>
+
+
+</table>
+
+
+<!-- ADVANTAGES -->
+
+<h3>
+Advantages
+</h3>
+
+
+<ul>
+
+<li>
+Designed for sequential data.
+</li>
+
+<li>
+Can use information from previous time steps.
+</li>
+
+<li>
+Works with variable-length sequences.
+</li>
+
+<li>
+Useful for language and temporal data.
+</li>
+
+<li>
+Can model nonlinear relationships.
+</li>
+
+</ul>
+
+
+<!-- DISADVANTAGES -->
+
+<h3 style="margin-top:25px">
+
+Disadvantages
+
+</h3>
+
+
+<ul>
+
+<li>
+Vanishing gradient problem.
+</li>
+
+<li>
+Training can be slow because of sequential computation.
+</li>
+
+<li>
+Long-term dependencies can be difficult for basic RNNs.
+</li>
+
+<li>
+Requires careful hyperparameter selection.
+</li>
+
+<li>
+Larger models require significant computational resources.
+</li>
+
+</ul>
+
+</section>
+
+
+<!-- ===================================================== -->
+<!-- RNN FORECASTING -->
+<!-- ===================================================== -->
+
+<section id="forecast">
+
+<div class="section-number">
+05 — APPLICATION
+</div>
+
+<h2>
+RNN for Time Series Forecasting
+</h2>
+
+<p>
+
+The same sequential memory mechanism used for language can be
+used for numerical sequences.
+
+</p>
+
+
+<div class="highlight">
+
+<strong>
+Example:
+</strong>
+
+<br><br>
+
+Suppose electricity demand for five hours is:
+
+<br><br>
+
+100 → 108 → 115 → 121 → 130
+
+<br><br>
+
+The RNN learns the relationship between previous observations
+and attempts to predict the next value.
+
+</div>
+
+
+<!-- SLIDING WINDOW -->
+
+<h3>
+Sliding Window Technique
+</h3>
+
+
+<div class="flow">
+
+
+<div class="flow-item">
+
+100
+
+<br>
+
+108
+
+<br>
+
+115
+
+</div>
+
+
+<div class="arrow">
+→
+</div>
+
+
+<div class="flow-item">
+
+Predict
+
+<br>
+
+<strong>
+121
+</strong>
+
+</div>
+
+
+<div class="arrow">
+→
+</div>
+
+
+<div class="flow-item">
+
+108
+
+<br>
+
+115
+
+<br>
+
+121
+
+</div>
+
+
+<div class="arrow">
+→
+</div>
+
+
+<div class="flow-item">
+
+Predict
+
+<br>
+
+<strong>
+130
+</strong>
+
+</div>
+
+
+</div>
+
+
+<!-- PIPELINE -->
+
+<h3>
+Forecasting Pipeline
+</h3>
+
+
+<div class="flow">
+
+
+<div class="flow-item">
+Raw Time Series
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-item">
+Normalize
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-item">
+Create Windows
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-item">
+RNN
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-item">
+Dense Layer
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-item">
+Next Value
+</div>
+
+
+</div>
+
+
+<!-- ARCHITECTURE -->
+
+<h3>
+Typical Architecture
+</h3>
+
+
+<div class="grid">
+
+
+<div class="card">
+
+<h3>
+Input Layer
+</h3>
+
+<p>
+
+Receives a sequence of historical values.
+
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+RNN Layer
+</h3>
+
+<p>
+
+Learns temporal dependencies.
+
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Dense Layer
+</h3>
+
+<p>
+
+Maps learned representation to the desired prediction.
+
+</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Output
+</h3>
+
+<p>
+
+Predicted future value.
+
+</p>
+
+</div>
+
+
+</div>
+
+
+<!-- MULTI STEP -->
+
+<h3 style="margin-top:50px">
+
+Multi-Step Forecasting
+
+</h3>
+
+<p>
+
+The model can predict one future point and then use that
+prediction as part of the input for predicting the following
+point.
+
+</p>
+
+
+<div class="flow">
+
+
+<div class="flow-item">
+Historical Data
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-item">
+Prediction t+1
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-item">
+Prediction t+2
+</div>
+
+<div class="arrow">
+→
+</div>
+
+<div class="flow-item">
+Prediction t+3
+</div>
+
+
+</div>
+
+
+<!-- METRICS -->
+
+<h3>
+Evaluation Metrics
+</h3>
+
+
+<table>
+
+<tr>
+
+<th>
+Metric
+</th>
+
+<th>
+Meaning
+</th>
+
+</tr>
+
+
+<tr>
+
+<td>
+MAE
+</td>
+
+<td>
+Average absolute prediction error.
+</td>
+
+</tr>
+
+
+<tr>
+
+<td>
+MSE
+</td>
+
+<td>
+Average squared prediction error.
+</td>
+
+</tr>
+
+
+<tr>
+
+<td>
+RMSE
+</td>
+
+<td>
+Square root of MSE; expressed in the original scale.
+</td>
+
+</tr>
+
+
+<tr>
+
+<td>
+MAPE
+</td>
+
+<td>
+Measures error as a percentage.
+</td>
+
+</tr>
+
+</table>
+
+
+<!-- FORECAST DEMO -->
+
+<div class="demo">
+
+<h3>
+📈 Interactive Forecasting Concept
+</h3>
+
+<p>
+
+Move the sliders to simulate recent observations of a time series.
+
+The simplified demonstration estimates the next value using
+the recent trend.
+
+</p>
+
+
+<label>
+Value 1
+</label>
+
+<input
+type="range"
+id="v1"
+min="50"
+max="200"
+value="100"
+>
+
+
+<label>
+Value 2
+</label>
+
+<input
+type="range"
+id="v2"
+min="50"
+max="200"
+value="110"
+>
+
+
+<label>
+Value 3
+</label>
+
+<input
+type="range"
+id="v3"
+min="50"
+max="200"
+value="120"
+>
+
+
+<label>
+Value 4
+</label>
+
+<input
+type="range"
+id="v4"
+min="50"
+max="200"
+value="130"
+>
+
+
+<div id="forecastValues">
+</div>
+
+
+<button onclick="forecast()">
+
+Predict Next Value
+
+</button>
+
+
+<div
+id="forecastResult"
+class="result">
+
+</div>
+
+
+</div>
+
+
+<!-- REAL APPLICATION -->
+
+<h3 style="margin-top:50px">
+
+Interesting Real-World Scenario
+
+</h3>
+
+
+<div class="highlight">
+
+<h3>
+🚦 Predicting a Traffic Surge Before It Happens
+</h3>
+
+
+<p>
+
+Imagine a smart city receiving traffic measurements every
+five minutes.
+
+<br><br>
+
+At 5:00 PM:
+
+<br>
+
+2,000 vehicles/hour
+
+<br><br>
+
+At 5:05 PM:
+
+<br>
+
+2,300 vehicles/hour
+
+<br><br>
+
+At 5:10 PM:
+
+<br>
+
+2,700 vehicles/hour
+
+<br><br>
+
+At 5:15 PM:
+
+<br>
+
+3,100 vehicles/hour
+
+<br><br>
+
+An RNN can learn temporal patterns from historical traffic data.
+
+If similar patterns previously resulted in a severe congestion
+event, the system can forecast increasing traffic.
+
+<br><br>
+
+The traffic control system could then adjust signal timing,
+send route recommendations and alert commuters
+<strong>
+before
+</strong>
+the road becomes heavily congested.
+
+</p>
+
+</div>
+
+
+<!-- WHEN TO USE -->
+
+<h3>
+When should we use RNN forecasting?
+</h3>
+
+
+<div class="grid">
+
+
+<div class="card">
+
+<h3>
+Good Fit
+</h3>
+
+<ul>
+
+<li>
+Sequential data
+</li>
+
+<li>
+Large historical datasets
+</li>
+
+<li>
+Nonlinear temporal patterns
+</li>
+
+<li>
+Multiple interacting variables
+</li>
+
+</ul>
+
+</div>
+
+
+<div class="card">
+
+<h3>
+Not Always Necessary
+</h3>
+
+<ul>
+
+<li>
+Very small datasets
+</li>
+
+<li>
+Simple predictable trends
+</li>
+
+<li>
+Problems where statistical models are sufficient
+</li>
+
+<li>
+Situations requiring highly interpretable models
+</li>
+
+</ul>
+
+</div>
+
+
+</div>
+
+</section>
+
+
+<!-- ===================================================== -->
+<!-- BIG PICTURE -->
+<!-- ===================================================== -->
+
+<section>
+
+<div class="section-number">
+06 — BIG PICTURE
+</div>
+
+<h2>
+Putting Everything Together
+</h2>
+
+
+<table>
+
+<tr>
+
+<th>
+Problem
+</th>
+
+<th>
+Data
+</th>
+
+<th>
+Possible Technique
+</th>
+
+</tr>
+
+
+<tr>
+
+<td>
+Customer opinion
+</td>
+
+<td>
+Text
+</td>
+
+<td>
+Sentiment Analysis
+</td>
+
+</tr>
+
+
+<tr>
+
+<td>
+Next word prediction
+</td>
+
+<td>
+Text sequence
+</td>
+
+<td>
+RNN / LSTM / GRU
+</td>
+
+</tr>
+
+
+<tr>
+
+<td>
+Stock / demand forecasting
+</td>
+
+<td>
+Numerical time series
+</td>
+
+<td>
+RNN / LSTM / GRU
+</td>
+
+</tr>
+
+
+<tr>
+
+<td>
+Traffic prediction
+</td>
+
+<td>
+Time-dependent measurements
+</td>
+
+<td>
+RNN / LSTM / GRU
+</td>
+
+</tr>
+
+
+<tr>
+
+<td>
+Emotion detection
+</td>
+
+<td>
+Text / speech sequence
+</td>
+
+<td>
+Deep learning
+</td>
+
+</tr>
+
+
+</table>
+
+
+<div class="highlight">
+
+<h3>
+The Connection
+</h3>
+
+<p>
+
+Sentiment analysis shows how machine learning can understand
+<strong>
+sequential human language.
+</strong>
+
+<br><br>
+
+Time series forecasting shows how machine learning can understand
+<strong>
+sequential numerical observations.
+</strong>
+
+<br><br>
+
+RNNs provide a common neural architecture for learning from
+<strong>
+sequence information.
+</strong>
+
+</p>
+
+</div>
+
+</section>
+
+
+<!-- ===================================================== -->
+<!-- QUIZ -->
+<!-- ===================================================== -->
+
+<section id="quiz">
+
+<div class="section-number">
+07 — INTERACTIVE QUIZ
+</div>
+
+<h2>
+Test Your Understanding
+</h2>
+
+
+<!-- QUESTION 1 -->
+
+<div class="quiz">
+
+<h3>
+1. What is the main purpose of sentiment analysis?
+</h3>
+
+
+<div
+class="option"
+onclick="answer(this,false)"
+>
+
+A. Compress an image
+
+</div>
+
+
+<div
+class="option"
+onclick="answer(this,true)"
+>
+
+B. Identify sentiment or opinion expressed in text
+
+</div>
+
+
+<div
+class="option"
+onclick="answer(this,false)"
+>
+
+C. Increase internet speed
+
+</div>
+
+</div>
+
+
+<!-- QUESTION 2 -->
+
+<div class="quiz">
+
+<h3>
+2. What makes time series data special?
+</h3>
+
+
+<div
+class="option"
+onclick="answer(this,false)"
+>
+
+A. It contains only text
+
+</div>
+
+
+<div
+class="option"
+onclick="answer(this,true)"
+>
+
+B. Observations have a temporal order
+
+</div>
+
+
+<div
+class="option"
+onclick="answer(this,false)"
+>
+
+C. It cannot contain numerical values
+
+</div>
+
+</div>
+
+
+<!-- QUESTION 3 -->
+
+<div class="quiz">
+
+<h3>
+3. What does an RNN maintain?
+</h3>
+
+
+<div
+class="option"
+onclick="answer(this,true)"
+>
+
+A. A hidden state containing information from previous steps
+
+</div>
+
+
+<div
+class="option"
+onclick="answer(this,false)"
+>
+
+B. Only the first input
+
+</div>
+
+
+<div
+class="option"
+onclick="answer(this,false)"
+>
+
+C. Only the final output
+
+</div>
+
+</div>
+
+
+<!-- QUESTION 4 -->
+
+<div class="quiz">
+
+<h3>
+4. Which problem affects basic RNNs?
+</h3>
+
+
+<div
+class="option"
+onclick="answer(this,false)"
+>
+
+A. Image resolution
+
+</div>
+
+
+<div
+class="option"
+onclick="answer(this,true)"
+>
+
+B. Vanishing gradients
+
+</div>
+
+
+<div
+class="option"
+onclick="answer(this,false)"
+>
+
+C. Lack of numerical inputs
+
+</div>
+
+</div>
+
+
+<!-- QUESTION 5 -->
+
+<div class="quiz">
+
+<h3>
+5. Which architecture is designed to handle long-term dependencies better than a basic RNN?
+</h3>
+
+
+<div
+class="option"
+onclick="answer(this,true)"
+>
+
+A. LSTM
+
+</div>
+
+
+<div
+class="option"
+onclick="answer(this,false)"
+>
+
+B. Linear Regression
+
+</div>
+
+
+<div
+class="option"
+onclick="answer(this,false)"
+>
+
+C. Bag of Words
+
+</div>
+
+</div>
+
+
+<!-- QUESTION 6 -->
+
+<div class="quiz">
+
+<h3>
+6. What is the purpose of a sliding window in time-series forecasting?
+</h3>
+
+
+<div
+class="option"
+onclick="answer(this,false)"
+>
+
+A. To remove all historical data
+
+</div>
+
+
+<div
+class="option"
+onclick="answer(this,true)"
+>
+
+B. To create input sequences from historical observations
+
+</div>
+
+
+<div
+class="option"
+onclick="answer(this,false)"
+>
+
+C. To convert numerical data into images
+
+</div>
+
+</div>
+
+
+</section>
+
+
+<!-- ===================================================== -->
+<!-- CONCLUSION -->
+<!-- ===================================================== -->
+
+<section>
+
+<div class="section-number">
+08 — CONCLUSION
+</div>
+
+<h2>
+Takeaway
+</h2>
+
+
+<div class="highlight">
+
+<h3>
+Remember these five ideas:
+</h3>
+
+<br>
+
+
+<strong>
+1.
+</strong>
+
+Sentiment Analysis
+→
+Understand opinions and emotions.
+
+
+<br>
+
+
+<strong>
+2.
+</strong>
+
+Preprocessing
+→
+Convert raw language into useful representations.
+
+
+<br>
+
+
+<strong>
+3.
+</strong>
+
+Time Series
+→
+Data where order and time matter.
+
+
+<br>
+
+
+<strong>
+4.
+</strong>
+
+RNN
+→
+Neural network with recurrent memory for sequences.
+
+
+<br>
+
+
+<strong>
+5.
+</strong>
+
+Forecasting
+→
+Use historical patterns to estimate future values.
+
+</div>
+
+
+<p
+style="
+font-size:22px;
+text-align:center;
+margin-top:50px;
+">
+
+<strong>
+
+"The past contains information about the present,
+and the present can contain clues about the future."
+
+</strong>
+
+</p>
+
+</section>
+
+
+<!-- ===================================================== -->
+<!-- FOOTER -->
+<!-- ===================================================== -->
+
+<footer>
+
+Sentiment Analysis
+•
+Time Series Forecasting
+•
+Recurrent Neural Networks
+
+<br><br>
+
+Presented by
+<strong>
+Girijan
+</strong>
+
+</footer>
+
+
+<!-- ===================================================== -->
+<!-- JAVASCRIPT -->
+<!-- ===================================================== -->
+
+<script>
+
+
+/* ===================================================== */
+/* SCROLL PROGRESS */
+/* ===================================================== */
+
+window.addEventListener(
+    "scroll",
+    function(){
+
+        const scrollTop =
+            document.documentElement.scrollTop;
+
+        const height =
+            document.documentElement.scrollHeight -
+            document.documentElement.clientHeight;
+
+        const progress =
+            (scrollTop / height) * 100;
+
+        document.getElementById(
+            "progress"
+        ).style.width =
+            progress + "%";
+
+    }
+);
+
+
+/* ===================================================== */
+/* SENTIMENT ANALYSIS DEMO */
+/* ===================================================== */
+
+function analyzeSentiment(){
+
+    let text =
+        document
+        .getElementById("sentText")
+        .value
+        .toLowerCase();
+
+
+    const positive = [
+
+        "love",
+        "excellent",
+        "amazing",
+        "great",
+        "best",
+        "awesome",
+        "beautiful",
+        "good",
+        "fantastic",
+        "happy",
+        "perfect",
+        "incredible",
+        "wonderful",
+        "brilliant",
+        "nice"
+
+    ];
+
+
+    const negative = [
+
+        "hate",
+        "bad",
+        "terrible",
+        "worst",
+        "poor",
+        "disappointing",
+        "horrible",
+        "awful",
+        "slow",
+        "broken",
+        "angry",
+        "useless",
+        "boring",
+        "waste"
+
+    ];
+
+
+    let positiveScore = 0;
+
+    let negativeScore = 0;
+
+
+    positive.forEach(
+        word => {
+
+            if(
+                text.includes(word)
+            ){
+
+                positiveScore++;
+
+            }
+
+        }
+    );
+
+
+    negative.forEach(
+        word => {
+
+            if(
+                text.includes(word)
+            ){
+
+                negativeScore++;
+
+            }
+
+        }
+    );
+
+
+    let score =
+        positiveScore -
+        negativeScore;
+
+
+    let result =
+        document.getElementById(
+            "sentResult"
+        );
+
+
+    result.style.display =
+        "block";
+
+
+    if(score > 0){
+
+        result.innerHTML =
+
+        "<strong class='positive'>" +
+
+        "POSITIVE SENTIMENT 😊" +
+
+        "</strong>" +
+
+        "<br><br>" +
+
+        "Positive indicators detected: " +
+
+        positiveScore +
+
+        "<br>" +
+
+        "Negative indicators detected: " +
+
+        negativeScore;
+
+    }
+
+
+    else if(score < 0){
+
+        result.innerHTML =
+
+        "<strong class='negative'>" +
+
+        "NEGATIVE SENTIMENT 😠" +
+
+        "</strong>" +
+
+        "<br><br>" +
+
+        "Positive indicators detected: " +
+
+        positiveScore +
+
+        "<br>" +
+
+        "Negative indicators detected: " +
+
+        negativeScore;
+
+    }
+
+
+    else{
+
+        result.innerHTML =
+
+        "<strong class='neutral'>" +
+
+        "NEUTRAL SENTIMENT 😐" +
+
+        "</strong>" +
+
+        "<br><br>" +
+
+        "No strong sentiment indicators detected.";
+
+    }
+
+}
+
+
+/* ===================================================== */
+/* FORECASTING DEMO */
+/* ===================================================== */
+
+function updateValues(){
+
+    let values = [
+
+        document.getElementById("v1").value,
+
+        document.getElementById("v2").value,
+
+        document.getElementById("v3").value,
+
+        document.getElementById("v4").value
+
+    ];
+
+
+    document.getElementById(
+        "forecastValues"
+    ).innerHTML =
+
+    "<p>" +
+
+    "Recent sequence: " +
+
+    "<strong>" +
+
+    values.join(" → ") +
+
+    "</strong>" +
+
+    "</p>";
+
+}
+
+
+/* Add listeners to sliders */
+
+document
+.querySelectorAll(
+    "#v1,#v2,#v3,#v4"
+)
+.forEach(
+
+    slider => {
+
+        slider.addEventListener(
+            "input",
+            updateValues
+        );
+
+    }
+
+);
+
+
+/* Initial values */
+
+updateValues();
+
+
+/* Forecast */
+
+function forecast(){
+
+    let values = [
+
+        Number(
+            document.getElementById(
+                "v1"
+            ).value
+        ),
+
+        Number(
+            document.getElementById(
+                "v2"
+            ).value
+        ),
+
+        Number(
+            document.getElementById(
+                "v3"
+            ).value
+        ),
+
+        Number(
+            document.getElementById(
+                "v4"
+            ).value
+        )
+
+    ];
+
+
+    /* Calculate recent changes */
+
+    let d1 =
+        values[1] -
+        values[0];
+
+
+    let d2 =
+        values[2] -
+        values[1];
+
+
+    let d3 =
+        values[3] -
+        values[2];
+
+
+    /* Average trend */
+
+    let trend =
+        (d1 + d2 + d3) / 3;
+
+
+    /* Predict next value */
+
+    let prediction =
+        Math.round(
+            values[3] + trend
+        );
+
+
+    let result =
+        document.getElementById(
+            "forecastResult"
+        );
+
+
+    result.style.display =
+        "block";
+
+
+    result.innerHTML =
+
+        "<strong>" +
+
+        "Predicted next value: " +
+
+        prediction +
+
+        "</strong>" +
+
+        "<br><br>" +
+
+        "Average recent trend: " +
+
+        trend.toFixed(2) +
+
+        "<br><br>" +
+
+        "<small>" +
+
+        "This is an educational trend demonstration, " +
+
+        "not an actual trained RNN." +
+
+        "</small>";
+
+}
+
+
+/* ===================================================== */
+/* QUIZ */
+/* ===================================================== */
+
+function answer(
+    element,
+    correct
+){
+
+    /* Remove previous state
+       from this question */
+
+    const parent =
+        element.parentElement;
+
+
+    parent
+    .querySelectorAll(
+        ".option"
+    )
+    .forEach(
+        option => {
+
+            option.classList.remove(
+                "correct",
+                "wrong"
+            );
+
+        }
+    );
+
+
+    if(correct){
+
+        element.classList.add(
+            "correct"
+        );
+
+
+        /* Avoid adding the message
+           repeatedly */
+
+        if(
+            !element.dataset.answered
+        ){
+
+            element.innerHTML +=
+                " ✓ Correct!";
+
+            element.dataset.answered =
+                "true";
+
+        }
+
+    }
+
+
+    else{
+
+        element.classList.add(
+            "wrong"
+        );
+
+
+        if(
+            !element.dataset.answered
+        ){
+
+            element.innerHTML +=
+                " ✗ Try again";
+
+            element.dataset.answered =
+                "true";
+
+        }
+
+    }
+
+}
+
+
+/* ===================================================== */
+/* INITIAL SENTIMENT DEMO */
+/* ===================================================== */
+
+window.addEventListener(
+    "load",
+    function(){
+
+        analyzeSentiment();
+
+    }
+);
+
+</script>
+
+
+</body>
+</html>
